@@ -11,7 +11,7 @@ before_install:
   - if [ "$PCRE" != "" ]; then sh install-pcre.sh; fi
   - if [ "$PCRE" != "" ]; then git clone git://github.com/php-build/php-build.git $HOME/.phpenv/plugins/php-build; fi
   - if [ "$PCRE" != "" ]; then phpenv install --list; fi
-  - if [ "$PCRE" != "" ]; then PHP_BUILD_CONFIGURE_OPTS="--with-pcre-regex={$PWD}/pcre/pcre-{$PCRE}" phpenv install 7.1.7 -c 4; fi
+  - if [ "$PCRE" != "" ]; then PHP_BUILD_CONFIGURE_OPTS="--with-pcre-regex=${PWD}/pcre/pcre-${PCRE}" phpenv install 7.1.7 -c 4; fi
   - if [ "$PCRE" != "" ]; then phpenv rehash; fi
   - if [ "$PCRE" != "" ]; then phpenv global 7.1; fi
 
