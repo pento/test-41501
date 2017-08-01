@@ -7,6 +7,15 @@ php:
   - '7.1'
   - 'nightly'
 
+matrix:
+  include:
+    - php: '7.1'
+      env: PCRE=8.30
+
+install:
+  - if [ -z "$PCRE" ]; then
+    sh install-pcre.sh && PHP_BUILD_CONFIGURE_OPTS="--with-pcre-regex={$PWD}/pcre/pcre-{$PCRE}" phpenv install 7.1; fi
+
 before_script:
   - php -i | grep -i '^pcre'
   - composer install
