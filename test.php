@@ -43,13 +43,15 @@ foreach ( $strings as $len => $string ) {
 
 $times = array();
 
+$loops = 10;
+
 foreach ( $tests as $length => $set ) {
 	$times[ $length ] = array();
 	foreach ( $set as $chance => $string ) {
 		$times[ $length ][ $chance ] = array();
 		foreach ( $functions as $func ) {
 			$start = microtime( true );
-			for ( $ii = 0; $ii < 10; $ii++ ) {
+			for ( $ii = 0; $ii < $loops; $ii++ ) {
 				$foo = $func( $string );
 			}
 			$stop = microtime( true );
@@ -64,8 +66,8 @@ foreach ( $times as $length => $set ) {
 	foreach ( $set as $chance => $funcs ) {
 		echo "$chance%: ";
 		$difference = $funcs[ 'wp_staticize_emoji' ] - $funcs[ 'wp_staticize_emoji2' ];
-		$difference = round( $difference * 1000, 1 );
-		echo 'Old is ' . abs( $difference) . 'ms ' . ( $difference > 0 ? 'slower' : 'faster' ) . " than New.\n";
+		$difference = round( $difference * 1000 / $loops, 1 );
+		echo 'Old averages ' . abs( $difference ) . 'ms ' . ( $difference > 0 ? 'slower' : 'faster' ) . " than New.\n";
 	}
 	echo "\n";
 }
