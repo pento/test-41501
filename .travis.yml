@@ -12,9 +12,9 @@ matrix:
     - php: '7.1'
       env: PCRE=8.30
 
-install:
-  - if [ -z "$PCRE" ]; then
-    sh install-pcre.sh && PHP_BUILD_CONFIGURE_OPTS="--with-pcre-regex={$PWD}/pcre/pcre-{$PCRE}" phpenv install 7.1; fi
+before_install:
+  - if [ "$PCRE" != "" ]; then
+    sh install-pcre.sh && export PHP_BUILD_CONFIGURE_OPTS="--with-pcre-regex={$PWD}/pcre/pcre-{$PCRE}"; fi
 
 before_script:
   - php -i | grep -i '^pcre'
