@@ -49,8 +49,11 @@ foreach ( $strings as $len => $string ) {
 	}
 }
 
-$times = array();
+// Warm up PCRE's regex cache, for a fair comparison.
+wp_staticize_emoji( '🔥' );
+wp_staticize_emoji2( '🔥' );
 
+$times = array();
 $loops = 10;
 
 foreach ( $tests as $length => $set ) {
