@@ -5,6 +5,17 @@ cache:
   - pcre
   - /tmp/php-build
 
+addons:
+  apt:
+    packages:
+    - build-essential
+    - git
+    - networking_basic
+    - mysql
+    - postgresql
+    - libxml
+    - libssl
+
 php:
   - '7.1'
 
