@@ -248,7 +248,7 @@ function wp_staticize_emoji2( $text ) {
 		// The text doesn't contain anything that might be emoji, so we can return early.
 		return $text;
 	}*/
-	$text = wp_encode_emoji( $text );
+	$text = wp_encode_emoji2( $text );
 
 	$output = '';
 	/*
