@@ -12,7 +12,8 @@ $lengths = array(
 	'Short' => 100,
 	'Medium' => 1000,
 	'Long' => 10000,
-	'Epic' => 100000,
+	'Super Long' => 100000,
+	'Epic' => 1000000,
 
 );
 
