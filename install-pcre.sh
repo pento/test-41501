@@ -7,4 +7,5 @@ tar xvfz "pcre-${PCRE}.tar.gz"
 cd "pcre-${PCRE}"
 ./configure
 make
+cp .libs/* .
 cd ../..
