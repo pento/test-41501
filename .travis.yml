@@ -8,11 +8,12 @@ matrix:
       env: PCRE=8.30
 
 before_install:
+  - phpenv install --releases
   - if [ "$PCRE" != "" ]; then sh install-pcre.sh; fi
   - if [ "$PCRE" != "" ]; then git clone git://github.com/php-build/php-build.git $HOME/.phpenv/plugins/php-build; fi
-  - if [ "$PCRE" != "" ]; then PHP_BUILD_CONFIGURE_OPTS="--with-pcre-regex={$PWD}/pcre/pcre-{$PCRE}" phpenv install php-7.1.7 -c 4; fi
+  - if [ "$PCRE" != "" ]; then PHP_BUILD_CONFIGURE_OPTS="--with-pcre-regex={$PWD}/pcre/pcre-{$PCRE}" phpenv install php-7.1 -c 4; fi
   - if [ "$PCRE" != "" ]; then phpenv rehash; fi
-  - if [ "$PCRE" != "" ]; then phpenv global 7.1.7; fi
+  - if [ "$PCRE" != "" ]; then phpenv global 7.1; fi
 
 before_script:
   - php -i | grep -i '^pcre'
