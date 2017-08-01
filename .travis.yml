@@ -5,6 +5,11 @@ cache:
   - pcre
   - /tmp/php-build
 
+addons:
+  apt:
+    packages:
+      - libldap
+
 php:
   - '7.1'
 
