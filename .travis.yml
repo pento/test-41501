@@ -5,17 +5,6 @@ cache:
   - pcre
   - /tmp/php-build
 
-addons:
-  apt:
-    packages:
-    - build-essential
-    - git
-    - networking_basic
-    - mysql
-    - postgresql
-    - libxml
-    - libssl
-
 php:
   - '7.1'
 
@@ -29,7 +18,7 @@ before_install:
   - if [ "$PCRE" != "" ]; then git clone git://github.com/php-build/php-build.git $HOME/.phpenv/plugins/php-build; fi
   - if [ "$PCRE" != "" ]; then phpenv install --list; fi
   - while true; do echo "..."; sleep 60; done &
-  - if [ "$PCRE" != "" ]; then PHP_BUILD_CONFIGURE_OPTS="--with-pcre-regex=${PWD}/pcre/pcre-${PCRE} --enable-intl --with-openssl --without-pear --with-gd --with-jpeg-dir=/usr --with-png-dir=/usr --with-freetype-dir=/usr --with-freetype --enable-exif --enable-zip --with-zlib --with-zlib-dir=/usr --with-mcrypt=/usr --with-pdo-sqlite --enable-soap --enable-xmlreader --with-xsl --enable-ftp --with-tidy --with-xmlrpc --enable-sysvsem --enable-sysvshm --enable-sysvmsg --enable-shmop --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --enable-pcntl --with-readline --enable-mbstring --with-curl --with-pgsql --with-pdo-pgsql --with-gettext --enable-sockets --with-bz2 --enable-bcmath --enable-calendar --with-libdir=lib --enable-fpm --enable-maintainer-zts --with-gmp --with-kerberos --with-imap --with-imap-ssl --with-ldap=shared --with-ldap-sasl --enable-dba --with-cdb --with-inifile" phpenv install 7.1.7 -c 4; fi
+  - if [ "$PCRE" != "" ]; then PHP_BUILD_CONFIGURE_OPTS="--with-pcre-regex=${PWD}/pcre/pcre-${PCRE} --enable-intl --with-openssl --without-pear --with-gd --with-jpeg-dir=/usr --with-png-dir=/usr --enable-exif --enable-zip --with-zlib --with-zlib-dir=/usr --with-mcrypt=/usr --with-pdo-sqlite --enable-soap --enable-xmlreader --with-xsl --enable-ftp --with-tidy --with-xmlrpc --enable-sysvsem --enable-sysvshm --enable-sysvmsg --enable-shmop --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --enable-pcntl --with-readline --enable-mbstring --with-curl --with-pgsql --with-pdo-pgsql --with-gettext --enable-sockets --with-bz2 --enable-bcmath --enable-calendar --with-libdir=lib --enable-fpm --enable-maintainer-zts --with-gmp --with-kerberos --with-imap --with-imap-ssl --with-ldap=shared --with-ldap-sasl --enable-dba --with-cdb" phpenv install 7.1.7 -c 4; fi
   - kill %1
   - if [ "$PCRE" != "" ]; then phpenv rehash; fi
   - if [ "$PCRE" != "" ]; then phpenv global 7.1.7; fi
