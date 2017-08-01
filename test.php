@@ -1,18 +1,29 @@
 <?php
 
-$api_options = array(
-	'Short' => '/1/short',
-	'Medium' => '/5/long',
-	'Long' => '/40/long',
-	'Epic' => '/200/verylong',
+require __DIR__ . '/vendor/autoload.php';
+
+$languages = array(
+	'en_US', // ASCII
+	'de_DE', // Occasional multibyte
+	'zh_TW', // Always multibyte
+);
+
+$lengths = array(
+	'Short' => 100,
+	'Medium' => 1000,
+	'Long' => 10000,
+	'Epic' => 100000,
+
 );
 
 $strings = array();
 
-foreach ( $api_options as $length => $option ) {
-	$curl = curl_init( "http://loripsum.net/api$option" );
-	curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-	$strings[ $length ] = curl_exec( $curl );
+foreach ( $languages as $language ) {
+	$faker = Faker\Factory::create( $language );
+	$strings[ $language ] = array();
+	foreach ( $lengths as $length => $chars ) {
+		$strings[ $language ][ $length ] = $faker->realText( $chars );
+	}
 }
 
 $emoji_chance = array(
@@ -28,27 +39,29 @@ $emoji_length = count( $emoji );
 $functions = array( 'wp_staticize_emoji', 'wp_staticize_emoji2' );
 
 $tests = array();
-foreach ( $strings as $len => $string ) {
-	$tests[ $len ] = array();
-	foreach ( $emoji_chance as $chance ) {
-		if ( ! $chance ) {
-			$tests[ $len ][ $chance ] = $string;
-			continue;
-		}
+foreach ( $strings as $language => $set ) {
+	$tests[ $language ] = array();
+	foreach ( $set as $len => $string ) {
+		$tests[ $language ][ $len ] = array();
+		foreach ( $emoji_chance as $chance ) {
+			if ( ! $chance ) {
+				$tests[ $language ][ $len ][ $chance ] = $string;
+				continue;
+			}
 
-		$length = strlen( $string );
-		$tests[ $len ][ $chance ] = '';
-		$prev = 0;
-		for( $ii = mt_rand( 0, 100 - $chance ); $ii < $length; $ii += mt_rand( 1, 101 - $chance ) ) {
-				$tests[ $len ][ $chance ] .= substr( $string, $prev, $ii - $prev );
-				$tests[ $len ][ $chance ] .= $emoji[ mt_rand( 0, $emoji_length - 1 ) ];
+			$length = mb_strlen( $string );
+			$tests[ $language ][ $len ][ $chance ] = '';
+			$prev = 0;
+			for( $ii = mt_rand( 0, 100 - $chance ); $ii < $length; $ii += mt_rand( 1, 101 - $chance ) ) {
+					$tests[ $language ][ $len ][ $chance ] .= mb_substr( $string, $prev, $ii - $prev );
+					$tests[ $language ][ $len ][ $chance ] .= $emoji[ mt_rand( 0, $emoji_length - 1 ) ];
 
-				$prev = $ii;
+					$prev = $ii;
+			}
+			$tests[ $language ][ $len ][ $chance ] .= mb_substr( $string, $prev, $length - $prev );
 		}
-		$tests[ $len ][ $chance ] .= substr( $string, $prev, $length - $prev );
 	}
 }
-
 // Warm up PCRE's regex cache, for a fair comparison.
 wp_staticize_emoji( '🔥' );
 wp_staticize_emoji2( '🔥' );
@@ -56,33 +69,38 @@ wp_staticize_emoji2( '🔥' );
 $times = array();
 $loops = 10;
 
-foreach ( $tests as $length => $set ) {
-	$times[ $length ] = array();
-	foreach ( $set as $chance => $string ) {
-		$times[ $length ][ $chance ] = array();
-		foreach ( $functions as $func ) {
-			$start = microtime( true );
-			for ( $ii = 0; $ii < $loops; $ii++ ) {
-				$foo = $func( $string );
+foreach ( $tests as $language => $strings ) {
+	$times[ $language ] = array();
+	foreach ( $strings as $length => $set ) {
+		$times[ $language ][ $length ] = array();
+		foreach ( $set as $chance => $string ) {
+			$times[ $language ][ $length ][ $chance ] = array();
+			foreach ( $functions as $func ) {
+				$start = microtime( true );
+				for ( $ii = 0; $ii < $loops; $ii++ ) {
+					$foo = $func( $string );
+				}
+				$stop = microtime( true );
+				$times[ $language ][ $length ][ $chance ][ $func ] = $stop - $start;
 			}
-			$stop = microtime( true );
-			$times[ $length ][ $chance ][ $func ] = $stop - $start;
 		}
 	}
 }
-
-foreach ( $times as $length => $set ) {
-	echo "$length Posts\n";
-	echo str_repeat( '=', strlen( $length ) + 6 ) . "\n\n";
-	foreach ( $set as $chance => $funcs ) {
-		echo "$chance%: ";
-		$difference = $funcs[ 'wp_staticize_emoji' ] - $funcs[ 'wp_staticize_emoji2' ];
-		$difference = round( $difference * 1000 / $loops, 1 );
-		echo 'Old averages ' . abs( $difference ) . 'ms ' . ( $difference > 0 ? 'slower' : 'faster' ) . " than New.\n";
+foreach ( $times as $language => $everything ) {
+	echo "$language Posts\n";
+	echo "===========\n\n";
+	foreach ( $everything as $length => $set ) {
+		echo "$length Posts\n";
+		echo str_repeat( '-', strlen( $length ) + 6 ) . "\n\n";
+		foreach ( $set as $chance => $funcs ) {
+			echo "$chance%: ";
+			$difference = $funcs[ 'wp_staticize_emoji' ] - $funcs[ 'wp_staticize_emoji2' ];
+			$difference = round( $difference * 1000 / $loops, 1 );
+			echo 'Old averages ' . abs( $difference ) . 'ms ' . ( $difference > 0 ? 'slower' : 'faster' ) . " than New.\n";
+		}
+		echo "\n";
 	}
-	echo "\n";
 }
-
 
 function wp_encode_emoji( $content ) {
 	if ( function_exists( 'mb_convert_encoding' ) ) {
