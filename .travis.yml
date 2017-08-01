@@ -8,10 +8,6 @@ php:
   - '7.1'
   - 'nightly'
 
-os:
-  - linux
-  - osx
-
 before_script:
   - php -i | grep -i '^pcre'
   - composer install
