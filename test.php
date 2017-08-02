@@ -242,15 +242,12 @@ function wp_staticize_emoji( $text ) {
 }
 
 function wp_encode_emoji2( $content ) {
-	$emoji = wp_emoji_regex( 'codepoints' );
+	$emoji = wp_emoji_regex();
 
 	foreach ( $emoji as $emojum ) {
-		$entity = substr_replace( $emojum, '&#x', 0, 2 );
-		$entity = str_replace( '\u', ';&#x', $entity ) . ';';
+		$emoji_char = html_entity_decode( $emojum );
 
-		$funmojum = mb_convert_encoding( $entity, 'UTF-8', 'HTML-ENTITIES' );
-
-		$content = str_replace( $funmojum, $entity, $content );
+		$content = str_replace( $emoji_char, $emojum, $content );
 	}
 
 	return $content;
