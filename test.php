@@ -40,7 +40,7 @@ foreach ( $languages as $language ) {
 	foreach ( $lengths as $length => $settings ) {
 		$strings[ $language ][ $length ] = '';
 		for ( $ii = 0; $ii < $settings['paragraphs']; $ii++ ) {
-			$strings[ $language ][ $length ] .= $faker->realText( $settings['length'] / $settings['paragraphs'] );
+			$strings[ $language ][ $length ] .= '<p>' . $faker->realText( $settings['length'] / $settings['paragraphs'] ) . '</p>';
 			$strings[ $language ][ $length ] .= "\n\n";
 		}
 	}
