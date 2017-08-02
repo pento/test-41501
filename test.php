@@ -71,20 +71,24 @@ $times = array();
 $loops = 10;
 
 foreach ( $tests as $language => $strings ) {
+	echo "$language\n";
 	$times[ $language ] = array();
 	foreach ( $strings as $length => $set ) {
+		echo "$length";
 		$times[ $language ][ $length ] = array();
 		foreach ( $set as $chance => $string ) {
 			$times[ $language ][ $length ][ $chance ] = array();
 			foreach ( $functions as $func ) {
 				$start = microtime( true );
 				for ( $ii = 0; $ii < $loops; $ii++ ) {
+					echo ".";
 					$foo = $func( $string );
 				}
 				$stop = microtime( true );
 				$times[ $language ][ $length ][ $chance ][ $func ] = $stop - $start;
 			}
 		}
+		echo "\n";
 	}
 }
 foreach ( $times as $language => $everything ) {
@@ -95,9 +99,10 @@ foreach ( $times as $language => $everything ) {
 		echo str_repeat( '-', strlen( $length ) + 6 ) . "\n\n";
 		foreach ( $set as $chance => $funcs ) {
 			echo "$chance%: ";
-			$difference = $funcs[ 'wp_staticize_emoji' ] - $funcs[ 'wp_staticize_emoji2' ];
-			$difference = round( $difference * 1000 / $loops, 1 );
-			echo 'Old averages ' . abs( $difference ) . 'ms ' . ( $difference > 0 ? 'slower' : 'faster' ) . " than New.\n";
+			$factor = 1000 / $loops;
+			$old = round( $funcs[ 'wp_staticize_emoji' ] * $factor, 1 );
+			$new = round( $funcs[ 'wp_staticize_emoji2' ] * $factor, 1 );
+			echo "Old averages {$old}ms, New averages {$new}ms\n";
 		}
 		echo "\n";
 	}
