@@ -9,11 +9,26 @@ $languages = array(
 );
 
 $lengths = array(
-	'Short' => 100,
-	'Medium' => 1000,
-	'Long' => 10000,
-	'Super Long' => 100000,
-	'Epic' => 1000000,
+	'Short' => array(
+		'paragraphs' => 1,
+		'length' => 100,
+	),
+	'Medium' => array(
+		'paragraphs' => 3,
+		'length' => 1000,
+	),
+	'Long' => array(
+		'paragraphs' => 10,
+		'length' => 10000,
+	),
+	'Super Long' => array(
+		'paragraphs' => 50,
+		'length' => 100000,
+	),
+	/*'Epic' => array(
+		'paragraphs' => 500,
+		'length' => 1000000,
+	),*/
 
 );
 
@@ -22,8 +37,12 @@ $strings = array();
 foreach ( $languages as $language ) {
 	$faker = Faker\Factory::create( $language );
 	$strings[ $language ] = array();
-	foreach ( $lengths as $length => $chars ) {
-		$strings[ $language ][ $length ] = $faker->realText( $chars );
+	foreach ( $lengths as $length => $settings ) {
+		$strings[ $language ][ $length ] = '';
+		for ( $ii = 0; $ii < $settings['paragraphs']; $ii++ ) {
+			$strings[ $language ][ $length ] .= $faker->realText( $settings['length'] / $settings['paragraphs'] );
+			$strings[ $language ][ $length ] .= "\n\n";
+		}
 	}
 }
 
@@ -43,25 +62,29 @@ foreach ( $strings as $language => $set ) {
 	$tests[ $language ] = array();
 	foreach ( $set as $len => $string ) {
 		$tests[ $language ][ $len ] = array();
+
+		$string = mb_convert_encoding( $string, 'utf-32', 'utf-8' );
+
 		foreach ( $emoji_chance as $chance ) {
 			if ( ! $chance ) {
-				$tests[ $language ][ $len ][ $chance ] = $string;
+				$tests[ $language ][ $len ][ $chance ] = mb_convert_encoding( $string, 'utf-8', 'utf-32' );
 				continue;
 			}
 
-			$length = mb_strlen( $string );
+			$length = mb_strlen( $string, 'utf-32' );
 			$tests[ $language ][ $len ][ $chance ] = '';
 			$prev = 0;
-			for( $ii = mt_rand( 0, 100 - $chance ); $ii < $length; $ii += mt_rand( 1, 101 - $chance ) ) {
-					$tests[ $language ][ $len ][ $chance ] .= mb_substr( $string, $prev, $ii - $prev );
-					$tests[ $language ][ $len ][ $chance ] .= $emoji[ mt_rand( 0, $emoji_length - 1 ) ];
+			for( $ii = mt_rand( 0, 50 / $chance ); $ii < $length; $ii += mt_rand( 50 / $chance, 150 / $chance ) ) {
+				$tests[ $language ][ $len ][ $chance ] .= mb_convert_encoding( mb_substr( $string, $prev, $ii - $prev, 'utf-32' ), 'utf-8', 'utf-32' );
+				$tests[ $language ][ $len ][ $chance ] .= $emoji[ mt_rand( 0, $emoji_length - 1 ) ];
 
-					$prev = $ii;
+				$prev = $ii;
 			}
-			$tests[ $language ][ $len ][ $chance ] .= mb_substr( $string, $prev, $length - $prev );
+			$tests[ $language ][ $len ][ $chance ] .= mb_convert_encoding( mb_substr( $string, $prev, $length - $prev ), 'utf-8', 'utf-32' );
 		}
 	}
 }
+
 // Warm up PCRE's regex cache, for a fair comparison.
 wp_staticize_emoji( '🔥' );
 wp_staticize_emoji2( '🔥' );
@@ -73,9 +96,11 @@ foreach ( $tests as $language => $strings ) {
 	echo "$language\n";
 	$times[ $language ] = array();
 	foreach ( $strings as $length => $set ) {
-		echo "$length";
+		echo "$length\n";
 		$times[ $language ][ $length ] = array();
 		foreach ( $set as $chance => $string ) {
+			$strlen = mb_strlen( $string );
+			echo "$chance% ($strlen chars): ";
 			$times[ $language ][ $length ][ $chance ] = array();
 			foreach ( $functions as $func ) {
 				$start = microtime( true );
@@ -86,6 +111,7 @@ foreach ( $tests as $language => $strings ) {
 				$stop = microtime( true );
 				$times[ $language ][ $length ][ $chance ][ $func ] = $stop - $start;
 			}
+			echo "\n";
 		}
 		echo "\n";
 	}
