@@ -289,6 +289,10 @@ function wp_staticize_emoji2( $text ) {
 		// If it's not a tag and not in ignore block.
 		if ( '' ==  $ignore_block_element && strlen( $content ) > 0 && '<' != $content[0] && false !== strpos( $content, '&#x' ) ) {
 			foreach ( $emoji as $emojum ) {
+				if ( false === strpos( $content, $emojum ) ) {
+					continue;
+				}
+
 				$file = str_replace( ';&#x', '-', $emojum );
 				$file = str_replace( array( '&#x', ';'), '', $file );
 
