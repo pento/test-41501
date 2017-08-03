@@ -330,7 +330,7 @@ function wp_staticize_emoji2( $text ) {
 				}
 
 				$file = str_replace( ';&#x', '-', $emojum );
-				$file = str_replace( array( '&#x', ';' ), '', $file );
+				$file = str_replace( array( '&#x', ';'), '', $file );
 
 				$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, $emojum );
 
