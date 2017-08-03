@@ -241,12 +241,7 @@ function wp_staticize_emoji( $text ) {
 	return $output;
 }
 
-function wp_encode_emoji2( $content, $checked_ascii = false ) {
-	if ( ! $checked_ascii && ( ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $content, 'ASCII' ) ) || ! preg_match( '/[^\x00-\x7F]/', $content ) ) ) {
-		// The text doesn't contain anything that might be emoji, so we can return early.
-		return $content;
-	}
-
+function wp_encode_emoji2( $content ) {
 	$emoji = wp_emoji_regex( 'partials' );
 
 	foreach ( $emoji as $emojum ) {
@@ -269,7 +264,7 @@ function wp_staticize_emoji2( $text ) {
 		return $text;
 	}
 
-	$text = wp_encode_emoji2( $text, true );
+	$text = wp_encode_emoji2( $text );
 
 	/** This filter is documented in wp-includes/formatting.php */
 	$cdn_url = apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/2.3/72x72/' );
