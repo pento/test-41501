@@ -259,12 +259,19 @@ function wp_encode_emoji2( $content ) {
 }
 
 function wp_staticize_emoji2( $text ) {
-	if ( ( ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $text, 'ASCII' ) ) || ! preg_match( '/[^\x00-\x7F]/', $text ) ) && false === strpos( $text, '&#x' ) ) {
-		// The text doesn't contain anything that might be emoji, so we can return early.
-		return $text;
-	}
+	if ( false === strpos( $text, '&#x' ) ) {
+		if ( ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $text, 'ASCII' ) ) || ! preg_match( '/[^\x00-\x7F]/', $text ) ) {
+			// The text doesn't contain anything that might be emoji, so we can return early.
+			return $text;
+		} else {
+			$encoded_text = wp_encode_emoji2( $text );
+			if ( $encoded_text === $text ) {
+				return $encoded_text;
+			}
 
-	$text = wp_encode_emoji2( $text );
+			$text = $encoded_text;
+		}
+	}
 
 	$emoji = wp_emoji_regex( 'full' );
 
