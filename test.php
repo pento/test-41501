@@ -342,7 +342,7 @@ function wp_staticize_emoji2( $text ) {
 
 				$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, $emoji_char );
 
-				$content = preg_replace( "/$emoji_char/", $entity, $content );
+				$content = str_replace( $emoji_char, $entity, $content );
 			}
 		}
 
