@@ -259,6 +259,10 @@ function wp_encode_emoji2( $content ) {
 }
 
 function wp_decode_emoji( $content ) {
+	if ( false === strpos( $content, '&#x' ) ) {
+		return $content;
+	}
+
 	$emoji = wp_emoji_regex( 'partials' );
 
 	foreach ( $emoji as $emojum ) {
@@ -276,20 +280,12 @@ function wp_decode_emoji( $content ) {
 }
 
 function wp_staticize_emoji2( $text ) {
-	if ( false === strpos( $text, '&#x' ) ) {
-		if ( ! maybe_has_emoji( $text ) ) {
-			// The text doesn't contain anything that might be emoji, so we can return early.
-			return $text;
-		}
-	} else {
-		$decoded_text = wp_decode_emoji( $text );
-		if ( $text === $decoded_text ) {
-			// No emoji were decoded, either, so we can return early.
-			return $text;
-		}
-
-		$text = $decoded_text;
+	if ( ( ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $text, 'ASCII' ) ) || ! preg_match( '/[^\x00-\x7F]/', $text ) ) && false === strpos( $text, '&#x' ) ) {
+		// The text doesn't contain anything that might be emoji, so we can return early.
+		return $text;
 	}
+
+	$text = wp_decode_emoji( $text );
 
 	/** This filter is documented in wp-includes/formatting.php */
 	$cdn_url = apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/2.3/72x72/' );
@@ -322,19 +318,31 @@ function wp_staticize_emoji2( $text ) {
 		}
 
 		// If it's not a tag and not in ignore block.
-		if ( '' ==  $ignore_block_element && strlen( $content ) > 0 && '<' != $content[0] && maybe_has_emoji( $content ) ) {
+		$replaced = false;
+		if ( '' ==  $ignore_block_element && strlen( $content ) > 0 && '<' != $content[0] ) {
 			foreach ( $emoji as $emojum ) {
 				$emoji_char = html_entity_decode( $emojum );
-				if ( false === strpos( $content, $emoji_char ) ) {
+				$pos = strpos( $content, $emoji_char );
+				if ( false === $pos ) {
 					continue;
 				}
+
+				// We've already found an emoji in this block, make sure we're not replacing the emoji in the alt tag.
+				if ( $replaced ) {
+					$offset = $pos - strlen( $content );
+					$altpos = strrpos( $content, '"', $offset );
+					if ( false !== $altpos && $pos - $altpos < 20 && 'alt=' === substr( $content, $altpos - 4, 4 ) ) {
+						continue;
+					}
+				}
+				$replaced = true;
 
 				$file = str_replace( ';&#x', '-', $emojum );
 				$file = str_replace( array( '&#x', ';'), '', $file );
 
-				$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, $emojum );
+				$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, $emoji_char );
 
-				$content = str_replace( $emoji_char, $entity, $content );
+				$content = preg_replace( "/$emoji_char/", $entity, $content );
 			}
 		}
 
@@ -347,16 +355,6 @@ function wp_staticize_emoji2( $text ) {
 	}
 
 	return $output;
-}
-
-function maybe_has_emoji( $text ) {
-	// 203C - 3299: E2 80 BC - E3 8A 99
-	// 1F004 - 1F9E6: F0 9F 80 84 - F0 9F A7 A6
-		$regex = '/(
-		     [\xE2-\xE3][\x00-\xFF][\x00-\xFF]
-		   | \xF0\x9F[\x80-\xA7][\x00-\xFF]
-		)/x';
-		return !! preg_match( $regex, $text );
 }
 
 function wp_emoji_regex( $type = 'full') {
