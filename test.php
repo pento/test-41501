@@ -266,6 +266,20 @@ function wp_staticize_emoji2( $text ) {
 
 	$text = wp_encode_emoji2( $text );
 
+	$emoji = wp_emoji_regex( 'full' );
+
+	$possible_emoji = array();
+	foreach( $emoji as $emojum ) {
+		$emoji_char = html_entity_decode( $emojum );
+		if ( false !== strpos( $text, $emoji_char ) ) {
+			$possible_emoji[ $emojum ] = $emoji_char;
+		}
+	}
+
+	if ( ! $possible_emoji ) {
+		return $text;
+	}
+
 	/** This filter is documented in wp-includes/formatting.php */
 	$cdn_url = apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/2.3/72x72/' );
 
@@ -286,8 +300,6 @@ function wp_staticize_emoji2( $text ) {
 	$tags_to_ignore = 'code|pre|style|script|textarea';
 	$ignore_block_element = '';
 
-	$emoji = wp_emoji_regex( 'full' );
-
 	for ( $i = 0; $i < $stop; $i++ ) {
 		$content = $textarr[$i];
 
@@ -298,7 +310,7 @@ function wp_staticize_emoji2( $text ) {
 
 		// If it's not a tag and not in ignore block.
 		if ( '' ==  $ignore_block_element && strlen( $content ) > 0 && '<' != $content[0] && false !== strpos( $content, '&#x' ) ) {
-			foreach ( $emoji as $emojum ) {
+			foreach ( $possible_emoji as $emojum => $emoji_char ) {
 				if ( false === strpos( $content, $emojum ) ) {
 					continue;
 				}
@@ -306,7 +318,7 @@ function wp_staticize_emoji2( $text ) {
 				$file = str_replace( ';&#x', '-', $emojum );
 				$file = str_replace( array( '&#x', ';'), '', $file );
 
-				$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, html_entity_decode( $emojum ) );
+				$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, $emoji_char );
 
 				$content = str_replace( $emojum, $entity, $content );
 			}
