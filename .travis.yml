@@ -9,6 +9,7 @@ php:
   - 'nightly'
 
 before_script:
+  - phpenv config-rm xdebug.ini
   - php -i | grep -i '^pcre'
   - composer install
 
